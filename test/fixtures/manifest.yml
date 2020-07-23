@@ -1,0 +1,5 @@
+sources:
+- url: https://example.com/hello_from_page_1.pdf
+  md5sum: 926559bfc78182e69af2de3e9f9e8542
+- url: https://example.com/hallo_von_seite_2.pdf
+  md5sum: e3c19285b03e4aca0f671e6b17dc699d
