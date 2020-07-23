@@ -7,6 +7,7 @@ import (
 
 	"github.com/motevets/pdfpatch/pkg/extractor"
 	"github.com/motevets/pdfpatch/pkg/manifest"
+	"github.com/motevets/pdfpatch/pkg/pdfbinder"
 	"github.com/motevets/pdfpatch/pkg/pdfpatch"
 )
 
@@ -37,6 +38,22 @@ pdfpatch apply-patch MANIFEST_PATH PDF_DIR PATCH_FILE
   MANIFEST_PATH: file page to manifest file
   PDF_DIR:       path to director with source PDF files
   PATCH_FILE:    path to the patch file (optional, default: /dev/stdin)
+`
+
+const bindPdfUsage = `
+pdfpatch bind-pdf INPUT_MARKDOWNS_DIR INPUT_CSS_FILE OUTPUT_FILE_PATH
+
+  INPUT_MARKDOWNS_DIR:    directory containing markdown file
+  INPUT_CSS_FILE:         path to file used to style the book
+  OUTPUT_FILE_PATH:       path where printable output HTML file is to be written
+`
+
+const bindPdfUsage = `
+pdfpatch bind-pdf INPUT_MARKDOWNS_DIR INPUT_CSS_FILE OUTPUT_FILE_PATH
+
+  INPUT_MARKDOWNS_DIR:    directory containing markdown file
+  INPUT_CSS_FILE:         path to file used to style the book
+  OUTPUT_FILE_PATH:       path where printable output HTML file is to be written
 `
 
 func main() {
@@ -98,6 +115,14 @@ func main() {
 		result, err := pdfpatch.ApplyPatch(os.Args[3], fileNames, string(patchFileBytes))
 		exitOnError(err, "Could not generate patch")
 		fmt.Println(result)
+		os.Exit(0)
+	} else if subcommand == "bind-pdf" {
+		if len(os.Args) != 5 {
+			fmt.Println(bindPdfUsage)
+			os.Exit(2)
+		}
+		err := pdfbinder.BindPdf(os.Args[2], os.Args[3], os.Args[4])
+		exitOnError(err, "Unable to bind PDF")
 		os.Exit(0)
 	} else {
 		fmt.Println(usage)
