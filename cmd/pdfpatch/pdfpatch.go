@@ -56,6 +56,14 @@ pdfpatch bind-pdf INPUT_MARKDOWNS_DIR INPUT_CSS_FILE OUTPUT_FILE_PATH
   OUTPUT_FILE_PATH:       path where printable output HTML file is to be written
 `
 
+const patchPDFsUsage = `
+pdfpatch patch-pdfs PATCH_BUNDLE_ZIP INPUT_PDF_DIR OUTPUT_PDF_PATH
+
+  PATH_BUNDLE_ZIP:        bundle file containing assets needed to patch PDFs
+  INPUT_PDF_DIR:          put the directory containing PDFs to patch
+  OUTPUT_PDF_PATH:        path where output PDF should be written
+`
+
 func main() {
 	if len(os.Args) == 1 {
 		fmt.Println(usage)
