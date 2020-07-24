@@ -14,7 +14,7 @@ import (
 const usage = `
 pdfpatch SUBCOMMAND ARGS
 
-  SUBCOMMAND: must be create-patch or extract-text
+  SUBCOMMAND: must be create-patch, extract-text, make-patch, apply-patch, bind-pdf, or patch-pdfs
 `
 
 const extractTextUsage = `
@@ -38,14 +38,6 @@ pdfpatch apply-patch MANIFEST_PATH PDF_DIR PATCH_FILE
   MANIFEST_PATH: file page to manifest file
   PDF_DIR:       path to director with source PDF files
   PATCH_FILE:    path to the patch file (optional, default: /dev/stdin)
-`
-
-const bindPdfUsage = `
-pdfpatch bind-pdf INPUT_MARKDOWNS_DIR INPUT_CSS_FILE OUTPUT_FILE_PATH
-
-  INPUT_MARKDOWNS_DIR:    directory containing markdown file
-  INPUT_CSS_FILE:         path to file used to style the book
-  OUTPUT_FILE_PATH:       path where printable output HTML file is to be written
 `
 
 const bindPdfUsage = `
@@ -82,7 +74,7 @@ func main() {
 		manifest := parseManifest(os.Args[2])
 		fileNames, err := manifest.SourceFileNames()
 		exitOnError(err, "Could not get file names from sources")
-		text, err := extractor.TextFromPdf(os.Args[3], fileNames)
+		text, err := extractor.TextFromPDFs(os.Args[3], fileNames)
 		exitOnError(err, "Could not extract text")
 		fmt.Println(text)
 		os.Exit(0)

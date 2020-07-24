@@ -7,10 +7,10 @@ import (
 	"github.com/ledongthuc/pdf"
 )
 
-func TextFromPdf(directory string, files []string) (extractedText string, err error) {
+func TextFromPDFs(directory string, files []string) (extractedText string, err error) {
 	for _, file := range files {
 		pdfPath := path.Join(directory, file)
-		fileText, err := readPdf(pdfPath)
+		fileText, err := textFromPDF(pdfPath)
 		if err != nil {
 			return "", err
 		}
@@ -19,7 +19,7 @@ func TextFromPdf(directory string, files []string) (extractedText string, err er
 	return
 }
 
-func readPdf(path string) (string, error) {
+func textFromPDF(path string) (string, error) {
 	f, r, err := pdf.Open(path)
 	// remember close file
 	defer f.Close()

@@ -1,2 +1,7 @@
+PAGE 1
+
 Goodbye from page 1.
+
+PAGE 2
+
 Auf wiedersehen von Seite 2.
