@@ -1,10 +1,9 @@
 package extractor
 
 import (
-	"bytes"
 	"path"
 
-	"github.com/ledongthuc/pdf"
+	"code.sajari.com/docconv"
 )
 
 func TextFromPDFs(directory string, files []string) (extractedText string, err error) {
@@ -20,17 +19,9 @@ func TextFromPDFs(directory string, files []string) (extractedText string, err e
 }
 
 func textFromPDF(path string) (string, error) {
-	f, r, err := pdf.Open(path)
-	// remember close file
-	defer f.Close()
+	res, err := docconv.ConvertPath(path)
 	if err != nil {
 		return "", err
 	}
-	var buf bytes.Buffer
-	b, err := r.GetPlainText()
-	if err != nil {
-		return "", err
-	}
-	buf.ReadFrom(b)
-	return buf.String(), nil
+	return res.Body, err
 }

@@ -3,8 +3,12 @@ module github.com/motevets/pdfpatch
 go 1.13
 
 require (
+	code.sajari.com/docconv v1.1.0
+	github.com/JalfResi/justext v0.0.0-20170829062021-c0282dea7198 // indirect
+	github.com/advancedlogic/GoOse v0.0.0-20191112112754-e742535969c1 // indirect
 	github.com/cweill/gotests v1.5.3 // indirect
 	github.com/ledongthuc/pdf v0.0.0-20200323191019-23c5852adbd2
+	github.com/levigross/exp-html v0.0.0-20120902181939-8df60c69a8f5 // indirect
 	github.com/onsi/ginkgo v1.14.0
 	github.com/onsi/gomega v1.10.1
 	github.com/sergi/go-diff v1.1.0
