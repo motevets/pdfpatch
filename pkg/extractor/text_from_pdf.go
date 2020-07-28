@@ -9,7 +9,7 @@ import (
 func TextFromPDFs(directory string, files []string) (extractedText string, err error) {
 	for _, file := range files {
 		pdfPath := path.Join(directory, file)
-		fileText, err := textFromPDF(pdfPath)
+		fileText, err := TextFromPDF(pdfPath)
 		if err != nil {
 			return "", err
 		}
@@ -18,7 +18,7 @@ func TextFromPDFs(directory string, files []string) (extractedText string, err e
 	return
 }
 
-func textFromPDF(path string) (string, error) {
+func TextFromPDF(path string) (string, error) {
 	res, err := docconv.ConvertPath(path)
 	if err != nil {
 		return "", err

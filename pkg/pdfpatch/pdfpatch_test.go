@@ -11,15 +11,40 @@ import (
 )
 
 const finalOutput = `
-Goodbye from page 1.
-Auf wiedersehen von Seite 2.
+PAGE 1
+
+Goodbye from chapter 1.
+
+PAGE 2
+
+Auf wiedersehen von Kapitel 2.
+
 `
-const computedPatch = "@@ -1,9 +1,12 @@\n-H\n+%0AGoodby\n e\n-llo\n  fro\n@@ -19,13 +19,23 @@\n  1.%0A\n-Hallo\n+Auf wiedersehen\n  von\n"
+
+const computedPatch = `@@ -1,9 +1,20 @@
+-H
++%0APAGE 1%0A%0AGoodby
+ e
+-llo
+  fro
+@@ -31,13 +31,31 @@
+ 1.%0A%0A
+-Hallo
++PAGE 2%0A%0AAuf wiedersehen
+  von
+@@ -65,8 +65,9 @@
+ pitel 2.
++%0A
+`
 
 var _ = Describe("pdfpatch", func() {
 	Describe("GeneratePatch", func() {
+		const fixturesPath = "../../test/fixtures/one_pdf_two_markdowns"
+		var pdfPath = path.Join(fixturesPath, "original.pdf")
+		var markdownPaths = []string{path.Join(fixturesPath, "chapter_1.md"), path.Join(fixturesPath, "chapter_2.md")}
+
 		It("generates a patch from the PDF files", func() {
-			patch, err := pdfpatch.GeneratePatch("../../test/fixtures/", []string{"hello_from_page_1.pdf", "hallo_von_seite_2.pdf"}, finalOutput)
+			patch, err := pdfpatch.GeneratePatch(pdfPath, markdownPaths)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(patch).To(Equal(computedPatch))
 		})
@@ -27,7 +52,7 @@ var _ = Describe("pdfpatch", func() {
 
 	Describe("ApplyPatch", func() {
 		It("applies the path to the PDF to make the desired output", func() {
-			output, err := pdfpatch.ApplyPatch("../../test/fixtures/", []string{"hello_from_page_1.pdf", "hallo_von_seite_2.pdf"}, computedPatch)
+			output, err := pdfpatch.ApplyPatch("../../test/fixtures/one_pdf_two_markdowns", []string{"original.pdf"}, computedPatch)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(output).To(Equal(finalOutput))
 		})

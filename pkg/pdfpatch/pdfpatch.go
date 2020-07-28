@@ -10,15 +10,31 @@ import (
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
-func GeneratePatch(inputFilesDir string, inputFiles []string, diffWith string) (patch string, err error) {
-	extractedText, err := extractor.TextFromPDFs(inputFilesDir, inputFiles)
+func GeneratePatch(inputPDFFile string, markdownFiles []string) (patch string, err error) {
+	extractedText, err := extractor.TextFromPDF(inputPDFFile)
+	if err != nil {
+		return
+	}
+	markdownFilesText, err := concatFilesToString(markdownFiles)
 	if err != nil {
 		return
 	}
 	dmp := diffmatchpatch.New()
-	diffs := dmp.DiffMain(extractedText, diffWith, false)
+	diffs := dmp.DiffMain(extractedText, markdownFilesText, false)
 	patches := dmp.PatchMake(diffs)
 	return dmp.PatchToText(patches), nil
+}
+
+func concatFilesToString(files []string) (output string, err error) {
+	for _, file := range files {
+		var fileText []byte
+		fileText, err = ioutil.ReadFile(file)
+		if err != nil {
+			return
+		}
+		output += "\n" + string(fileText) + "\n"
+	}
+	return
 }
 
 func ApplyPatch(inputFilesDir string, inputFiles []string, patch string) (newText string, err error) {

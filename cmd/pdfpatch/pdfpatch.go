@@ -14,7 +14,7 @@ import (
 const usage = `
 pdfpatch SUBCOMMAND ARGS
 
-  SUBCOMMAND: must be create-patch, extract-text, make-patch, apply-patch, bind-pdf, or patch-pdfs
+  SUBCOMMAND: must be extract-text, make-patch, apply-patch, bind-pdf, or patch-pdfs
 `
 
 const extractTextUsage = `
@@ -25,11 +25,11 @@ pdfpatch extract-text MANIFEST_PATH PDF_DIR
 `
 
 const makePatchUsage = `
-pdfpatch make-patch MANIFEST_PATH PDF_DIR TO_FILE
+pdfpatch make-patch PDF_FILE MARKDOWN_FILE [ADDITIONAL_MARKDOWN_FILES ...]
 
-  MANIFEST_PATH: file page to manifest file
-  PDF_DIR:       path to director with source PDF files
-  TO_FILE:       the file to diff against (optional, default: /dev/stdin)
+  PDF_FILE:                  original source PDF file
+  MARKDOWN_FILE:             file to diff against to make the patch
+  ADDITIONAL_MARKDOWN_FILES: (optional) additional files appended to the first file with which to make the patch
 `
 
 const applyPatchUsage = `
@@ -64,9 +64,7 @@ func main() {
 
 	subcommand := os.Args[1]
 
-	if subcommand == "create-patch" {
-		fmt.Println("Yippee")
-	} else if subcommand == "extract-text" {
+	if subcommand == "extract-text" {
 		if len(os.Args) != 4 {
 			fmt.Println(extractTextUsage)
 			os.Exit(2)
@@ -79,21 +77,11 @@ func main() {
 		fmt.Println(text)
 		os.Exit(0)
 	} else if subcommand == "make-patch" {
-		var fileName string
-		if len(os.Args) == 4 {
-			fileName = "/dev/stdin"
-		} else if len(os.Args) == 5 {
-			fileName = os.Args[4]
-		} else {
+		if len(os.Args) < 4 {
 			fmt.Println(makePatchUsage)
 			os.Exit(2)
 		}
-		toFileBytes, err := ioutil.ReadFile(fileName)
-		exitOnError(err, "Could not read TO_FILE")
-		manifest := parseManifest(os.Args[2])
-		fileNames, err := manifest.SourceFileNames()
-		exitOnError(err, "Could not get file names from sources")
-		patch, err := pdfpatch.GeneratePatch(os.Args[3], fileNames, string(toFileBytes))
+		patch, err := pdfpatch.GeneratePatch(os.Args[2], os.Args[3:])
 		exitOnError(err, "Could not generate patch")
 		fmt.Println(patch)
 		os.Exit(0)
