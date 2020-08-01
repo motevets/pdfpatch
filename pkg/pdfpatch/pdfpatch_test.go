@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"path"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/ledongthuc/pdf"
 	"github.com/motevets/pdfpatch/pkg/pdfpatch"
 	. "github.com/onsi/ginkgo"
@@ -50,6 +51,66 @@ var _ = Describe("pdfpatch", func() {
 		})
 	})
 
+	Describe("GeneratePatches", func() {
+		const fixturesPath = "../../test/fixtures/multiple_patches"
+		var pdfsDir = path.Join(fixturesPath, "pdfs")
+		var markdownsDir = path.Join(fixturesPath, "markdowns")
+		var pdfMarkdowns = []pdfpatch.PDFMarkdowns{
+			{
+				PDFFileName: "title_pages.pdf",
+				MarkdownFileNames: []string{
+					"title.md",
+					"dedication.md",
+				},
+			},
+			{
+				PDFFileName: "chapter_1.pdf",
+				MarkdownFileNames: []string{
+					"chapter_1.md",
+				},
+			},
+		}
+
+		var pdfPatches = []pdfpatch.PDFPatch{
+			{
+				PDFFileName: "title_pages.pdf",
+				Patch: heredoc.Doc(`
+					@@ -1,8 +1,21 @@
+					+%0APAGE 1%0A%0ANEW 
+					 TITLE PA
+					@@ -18,16 +18,24 @@
+					 E PAGE%0A%0A
+					+PAGE 2%0A%0A
+					 Dedicate
+					@@ -52,9 +52,7 @@
+					 llow
+					- men
+					+s
+					 .
+					+%0A
+				`),
+			},
+			{
+				PDFFileName: "chapter_1.pdf",
+				Patch: heredoc.Doc(`
+					@@ -1,8 +1,17 @@
+					+%0APAGE 3%0A%0A
+					 This is 
+					@@ -20,8 +20,30 @@
+					 apter 1.
+					+%0A%0AIt's pretty great.%0A%0A
+				`),
+			},
+		}
+
+		It("generates a patch from the PDF files", func() {
+			patches, err := pdfpatch.GeneratePatches(pdfMarkdowns, pdfsDir, markdownsDir)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(len(patches)).To(Equal(2))
+			Expect(patches).To(Equal(pdfPatches))
+		})
+	})
+
 	Describe("ApplyPatch", func() {
 		It("applies the path to the PDF to make the desired output", func() {
 			output, err := pdfpatch.ApplyPatch("../../test/fixtures/one_pdf_two_markdowns", []string{"original.pdf"}, computedPatch)
@@ -79,7 +140,6 @@ var _ = Describe("pdfpatch", func() {
 
 func statPDF(path string) (numPages int, text string, err error) {
 	f, r, err := pdf.Open(path)
-	// remember close file
 	defer f.Close()
 	if err != nil {
 		return

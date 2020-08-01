@@ -13,8 +13,9 @@ type Manifest struct {
 }
 
 type Source struct {
-	URL    string
-	Md5Sum string
+	URL          string
+	Md5Sum       string
+	PatchedFiles []string `yaml:"patched_files"`
 }
 
 func ParseFile(path string) (theManifest Manifest, err error) {

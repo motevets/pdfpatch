@@ -10,7 +10,20 @@ import (
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
+type PDFMarkdowns struct {
+	PDFFileName       string
+	MarkdownFileNames []string
+}
+
+type PDFPatch struct {
+	PDFFileName string
+	Patch       string
+}
+
 func GeneratePatch(inputPDFFile string, markdownFiles []string) (patch string, err error) {
+	if len(markdownFiles) == 0 {
+		log.Println("WARNING: empty list of markdown files to diff against", inputPDFFile)
+	}
 	extractedText, err := extractor.TextFromPDF(inputPDFFile)
 	if err != nil {
 		return
@@ -23,6 +36,25 @@ func GeneratePatch(inputPDFFile string, markdownFiles []string) (patch string, e
 	diffs := dmp.DiffMain(extractedText, markdownFilesText, false)
 	patches := dmp.PatchMake(diffs)
 	return dmp.PatchToText(patches), nil
+}
+
+func GeneratePatches(pdfMarkdownsList []PDFMarkdowns, pdfsDir string, markdownsDir string) (patches []PDFPatch, err error) {
+	patches = make([]PDFPatch, len(pdfMarkdownsList))
+	for i, pdfMarkdowns := range pdfMarkdownsList {
+		var patch string
+		patches[i] = PDFPatch{PDFFileName: pdfMarkdowns.PDFFileName}
+		pdfFile := path.Join(pdfsDir, pdfMarkdowns.PDFFileName)
+		markdownFiles := make([]string, len(pdfMarkdowns.MarkdownFileNames))
+		for j, markdownFileName := range pdfMarkdowns.MarkdownFileNames {
+			markdownFiles[j] = path.Join(markdownsDir, markdownFileName)
+		}
+		patch, err = GeneratePatch(pdfFile, markdownFiles)
+		if err != nil {
+			return
+		}
+		patches[i].Patch = patch
+	}
+	return
 }
 
 func concatFilesToString(files []string) (output string, err error) {

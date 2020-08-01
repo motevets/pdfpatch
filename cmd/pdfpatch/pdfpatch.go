@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 
 	"github.com/motevets/pdfpatch/pkg/extractor"
 	"github.com/motevets/pdfpatch/pkg/manifest"
@@ -14,7 +15,7 @@ import (
 const usage = `
 pdfpatch SUBCOMMAND ARGS
 
-  SUBCOMMAND: must be extract-text, make-patch, apply-patch, bind-pdf, or patch-pdfs
+  SUBCOMMAND: must be extract-text, make-patch, make-patches, apply-patch, bind-pdf, or patch-pdfs
 `
 
 const extractTextUsage = `
@@ -30,6 +31,15 @@ pdfpatch make-patch PDF_FILE MARKDOWN_FILE [ADDITIONAL_MARKDOWN_FILES ...]
   PDF_FILE:                  original source PDF file
   MARKDOWN_FILE:             file to diff against to make the patch
   ADDITIONAL_MARKDOWN_FILES: (optional) additional files appended to the first file with which to make the patch
+`
+
+const makePatchesUsage = `
+pdfpatch make-patches MANIFEST_PATH PDF_DIR MARKDOWN_DIR OUTPUT_DIR
+
+  MANIFEST_PATH: file page to manifest file
+  PDF_DIR:       path to directory with source PDF files
+  MARKDOWN_FILE: path to directory with files to diff against to make the patch
+  OUTPUT_DIR:    path where patches should be written
 `
 
 const applyPatchUsage = `
@@ -85,6 +95,29 @@ func main() {
 		exitOnError(err, "Could not generate patch")
 		fmt.Println(patch)
 		os.Exit(0)
+	} else if subcommand == "make-patches" {
+		if len(os.Args) != 6 {
+			fmt.Println(makePatchesUsage)
+			os.Exit(2)
+		}
+		manifest := parseManifest(os.Args[2])
+		pdfMarkdowns := make([]pdfpatch.PDFMarkdowns, len(manifest.Sources))
+		for i, source := range manifest.Sources {
+			pdfFilename, err := source.FileName()
+			exitOnError(err, "Could not get filename from source "+source.URL)
+			pdfMarkdowns[i] = pdfpatch.PDFMarkdowns{
+				PDFFileName:       pdfFilename,
+				MarkdownFileNames: source.PatchedFiles,
+			}
+		}
+		patches, err := pdfpatch.GeneratePatches(pdfMarkdowns, os.Args[3], os.Args[4])
+		exitOnError(err, "Could not generate patches")
+		for _, patch := range patches {
+			outputPath := path.Join(os.Args[5], patch.PDFFileName+".patch")
+			err := ioutil.WriteFile(outputPath, []byte(patch.Patch), 0755)
+			exitOnError(err, "Could not write patch file")
+		}
+		os.Exit(0)
 	} else if subcommand == "apply-patch" {
 		var fileName string
 		if len(os.Args) == 4 {
@@ -101,7 +134,7 @@ func main() {
 		fileNames, err := manifest.SourceFileNames()
 		exitOnError(err, "Could not get file names from sources")
 		result, err := pdfpatch.ApplyPatch(os.Args[3], fileNames, string(patchFileBytes))
-		exitOnError(err, "Could not generate patch")
+		exitOnError(err, "Could not apply patch")
 		fmt.Println(result)
 		os.Exit(0)
 	} else if subcommand == "bind-pdf" {
