@@ -43,10 +43,9 @@ pdfpatch make-patches MANIFEST_PATH PDF_DIR MARKDOWN_DIR OUTPUT_DIR
 `
 
 const applyPatchUsage = `
-pdfpatch apply-patch MANIFEST_PATH PDF_DIR PATCH_FILE
+pdfpatch apply-patch PDF_FILE [PATCH_FILE]
 
-  MANIFEST_PATH: file page to manifest file
-  PDF_DIR:       path to director with source PDF files
+  PDF_FILE:      path to source PDF file with which to patch
   PATCH_FILE:    path to the patch file (optional, default: /dev/stdin)
 `
 
@@ -59,11 +58,13 @@ pdfpatch bind-pdf INPUT_MARKDOWNS_DIR INPUT_CSS_FILE OUTPUT_FILE_PATH
 `
 
 const patchPDFsUsage = `
-pdfpatch patch-pdfs PATCH_BUNDLE_ZIP INPUT_PDF_DIR OUTPUT_PDF_PATH
+pdfpatch patch-pdfs MANIFEST_PATH INPUT_PDF_DIR PATCHES_DIR CSS_PATH OUTPUT_PDF_PATH
 
-  PATH_BUNDLE_ZIP:        bundle file containing assets needed to patch PDFs
-  INPUT_PDF_DIR:          put the directory containing PDFs to patch
-  OUTPUT_PDF_PATH:        path where output PDF should be written
+  MANIFEST_PATH:   file page to manifest file
+  INPUT_PDF_DIR:   put the directory containing PDFs to patch
+  PATCHES_DIR:	   directory containing patches with filenames like "input_pdf_file.pdf.patch" for each PDF file
+  CSS_PATH:        path to the CSS file used to style the output PDF
+  OUTPUT_PDF_PATH: path where output PDF should be written
 `
 
 func main() {
@@ -119,21 +120,16 @@ func main() {
 		}
 		os.Exit(0)
 	} else if subcommand == "apply-patch" {
-		var fileName string
-		if len(os.Args) == 4 {
-			fileName = "/dev/stdin"
-		} else if len(os.Args) == 5 {
-			fileName = os.Args[4]
+		var patchFileName string
+		if len(os.Args) == 3 {
+			patchFileName = "/dev/stdin"
+		} else if len(os.Args) == 4 {
+			patchFileName = os.Args[3]
 		} else {
 			fmt.Println(applyPatchUsage)
 			os.Exit(2)
 		}
-		patchFileBytes, err := ioutil.ReadFile(fileName)
-		exitOnError(err, "Could not read PATCH_FILE")
-		manifest := parseManifest(os.Args[2])
-		fileNames, err := manifest.SourceFileNames()
-		exitOnError(err, "Could not get file names from sources")
-		result, err := pdfpatch.ApplyPatch(os.Args[3], fileNames, string(patchFileBytes))
+		result, err := pdfpatch.ApplyPatch(os.Args[2], patchFileName)
 		exitOnError(err, "Could not apply patch")
 		fmt.Println(result)
 		os.Exit(0)
@@ -143,6 +139,17 @@ func main() {
 			os.Exit(2)
 		}
 		err := pdfbinder.BindPdf(os.Args[2], os.Args[3], os.Args[4])
+		exitOnError(err, "Unable to bind PDF")
+		os.Exit(0)
+	} else if subcommand == "patch-pdfs" {
+		if len(os.Args) != 7 {
+			fmt.Println(patchPDFsUsage)
+			os.Exit(2)
+		}
+		manifest := parseManifest(os.Args[2])
+		pdfFiles, err := manifest.SourceFileNames()
+		exitOnError(err, "Unable to determine names of source PDFs")
+		err = pdfpatch.PatchPDF(pdfFiles, os.Args[3], os.Args[4], os.Args[5], os.Args[6])
 		exitOnError(err, "Unable to bind PDF")
 		os.Exit(0)
 	} else {

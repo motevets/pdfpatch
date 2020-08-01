@@ -1,6 +1,7 @@
 package pdfpatch
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"path"
@@ -69,13 +70,18 @@ func concatFilesToString(files []string) (output string, err error) {
 	return
 }
 
-func ApplyPatch(inputFilesDir string, inputFiles []string, patch string) (newText string, err error) {
-	extractedText, err := extractor.TextFromPDFs(inputFilesDir, inputFiles)
+func ApplyPatch(inputPDFFilePath string, patchFilePath string) (newText string, err error) {
+	extractedText, err := extractor.TextFromPDF(inputPDFFilePath)
 	if err != nil {
 		return
 	}
+	patch, err := ioutil.ReadFile(patchFilePath)
+	if err != nil {
+		return
+	}
+
 	dmp := diffmatchpatch.New()
-	patches, err := dmp.PatchFromText(patch)
+	patches, err := dmp.PatchFromText(string(patch))
 	if err != nil {
 		return
 	}
@@ -83,22 +89,25 @@ func ApplyPatch(inputFilesDir string, inputFiles []string, patch string) (newTex
 	return
 }
 
-func PatchPDF(inputPDFsDir string, inputPDFs []string, patchFile string, cssFile string, outputPDFPath string) (err error) {
-	patch, err := ioutil.ReadFile(patchFile)
+func PatchPDF(inputPDFs []string, inputPDFsDir string, patchFilesDir string, cssFile string, outputPDFPath string) (err error) {
 	patchedMarkdownDir, err := ioutil.TempDir("", "patched_markdowns")
-	patchedMarkdownFilePath := path.Join(patchedMarkdownDir, "patched.md")
-	if err != nil {
-		return
+	for i, pdfFileName := range inputPDFs {
+		var patchedText string
+		pdfFilePath := path.Join(inputPDFsDir, pdfFileName)
+		patchFilePath := path.Join(patchFilesDir, pdfFileName+".patch")
+		patchedMarkdownFileName := fmt.Sprintf("%04d_%s.md", i, pdfFileName)
+		patchedMarkdownPath := path.Join(patchedMarkdownDir, patchedMarkdownFileName)
+
+		patchedText, err = ApplyPatch(pdfFilePath, patchFilePath)
+		if err != nil {
+			return
+		}
+		err = ioutil.WriteFile(patchedMarkdownPath, []byte(patchedText), 0644)
+		if err != nil {
+			return
+		}
 	}
-	patchedText, err := ApplyPatch(inputPDFsDir, inputPDFs, string(patch))
-	if err != nil {
-		return
-	}
-	err = ioutil.WriteFile(patchedMarkdownFilePath, []byte(patchedText), 0755)
-	if err != nil {
-		return
-	}
-	log.Println("patched mardown written:", patchedMarkdownFilePath)
+	log.Println("patched mardowns written:", patchedMarkdownDir)
 	err = pdfbinder.BindPdf(patchedMarkdownDir, cssFile, outputPDFPath)
 	return
 }
