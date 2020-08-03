@@ -9,9 +9,10 @@ import (
 
 // Bundle represents the contents of a packaged (compressed) bundle
 type Bundle struct {
-	Manifest   Manifest
-	CSSDir     string
-	PatchesDir string
+	Manifest     Manifest
+	ManifestPath string
+	CSSDir       string
+	PatchesDir   string
 }
 
 // UnpackBundle unzips a bundle and returns its content
@@ -41,7 +42,8 @@ func UnpackBundle(bundleFilePath string) (bundle Bundle, err error) {
 	if err != nil {
 		return
 	}
-	theManifest, err = ParseFile(path.Join(tempDir, "manifest.yml"))
+	bundle.ManifestPath = path.Join(tempDir, "manifest.yml")
+	theManifest, err = ParseFile(bundle.ManifestPath)
 	bundle.Manifest = theManifest
 	bundle.CSSDir = path.Join(tempDir, "css")
 	bundle.PatchesDir = path.Join(tempDir, "patches")
