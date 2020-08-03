@@ -7,6 +7,7 @@ import (
 	"path"
 
 	"github.com/motevets/pdfpatch/pkg/extractor"
+	"github.com/motevets/pdfpatch/pkg/manifest"
 	"github.com/motevets/pdfpatch/pkg/pdfbinder"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
@@ -109,5 +110,27 @@ func PatchPDF(inputPDFs []string, inputPDFsDir string, patchFilesDir string, css
 	}
 	log.Println("patched mardowns written:", patchedMarkdownDir)
 	err = pdfbinder.BindPdf(patchedMarkdownDir, cssFile, outputPDFPath)
+	return
+}
+
+// PatchBundle extracts a bundle file and uses its contents along with source PDFs to genderate a patched PDF
+func PatchBundle(bundlePath string, inputPDFsDir string, styleSheet string, outputPDFPath string) (err error) {
+	var (
+		bundle      manifest.Bundle
+		cssFilePath string
+		pdfFiles    []string
+	)
+
+	bundle, err = manifest.UnpackBundle(bundlePath)
+	if err != nil {
+		return
+	}
+	cssFilePath, err = bundle.CSSFilePath(styleSheet)
+	if err != nil {
+		return
+	}
+	pdfFiles = bundle.Manifest.SourceFileNames()
+
+	err = PatchPDF(pdfFiles, inputPDFsDir, bundle.PatchesDir, cssFilePath, outputPDFPath)
 	return
 }

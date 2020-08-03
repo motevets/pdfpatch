@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path"
 
@@ -47,5 +48,23 @@ func UnpackBundle(bundleFilePath string) (bundle Bundle, err error) {
 	bundle.Manifest = theManifest
 	bundle.CSSDir = path.Join(tempDir, "css")
 	bundle.PatchesDir = path.Join(tempDir, "patches")
+	return
+}
+
+// CSSFilePath returns the path to the style sheet of an extracted bundle
+// note: currently there is no validation that the stylesheet exists and err will always be nil
+func (bundle Bundle) CSSFilePath(styleSheet string) (styleSheetPath string, err error) {
+	var foundStyleSheet = false
+	for _, style := range bundle.Manifest.Styles {
+		if style.StyleSheet == styleSheet {
+			foundStyleSheet = true
+			break
+		}
+	}
+	if foundStyleSheet {
+		styleSheetPath = path.Join(bundle.CSSDir, styleSheet)
+	} else {
+		err = fmt.Errorf("%s is not a style sheet in the bundle", styleSheet)
+	}
 	return
 }

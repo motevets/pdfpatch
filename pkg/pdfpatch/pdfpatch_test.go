@@ -124,7 +124,7 @@ var _ = Describe("pdfpatch", func() {
 	})
 
 	Describe("PatchPDF", func() {
-		var outputPDFFile = "../../test/output/" + time.Now().Format(time.RFC3339) + "-out.pdf"
+		var outputPDFFile = "../../test/output/" + time.Now().Format(time.RFC3339) + "-patch-pdf-out.pdf"
 		const fixturesPath = "../../test/fixtures/pdfs_patches_and_csses"
 		var pdfFiles = []string{"title_pages.pdf", "chapter_1.pdf"}
 		var patchesDir = path.Join(fixturesPath, "patches")
@@ -140,6 +140,24 @@ var _ = Describe("pdfpatch", func() {
 			Expect(numPages).To(Equal(3))
 			fmt.Println(text)
 			Expect(text).To(Equal("NEW TITLE PAGE1Dedicated to my fellows.2This is chapter 1.It's pretty great.3"))
+		})
+	})
+
+	Describe("PatchBundle", func() {
+		var outputPDFFile = "../../test/output/" + time.Now().Format(time.RFC3339) + "-patch-bundle-out.pdf"
+		const pdfsDir = "../../test/fixtures/patch_bundle_pdfs"
+		const bundlePath = "../../test/fixtures/patch_bundle.zip"
+		const styleSheet = "large_print.css"
+
+		It("uses the patch bundle and input PDFs to make a patched PDF", func() {
+			var err error
+			err = pdfpatch.PatchBundle(bundlePath, pdfsDir, styleSheet, outputPDFFile)
+			Expect(err).NotTo(HaveOccurred())
+			numPages, text, err := statPDF(outputPDFFile)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(numPages).To(Equal(3))
+			fmt.Println(text)
+			Expect(text).To(Equal("NEW TITLE PAGE1Dedicated to myfellows.2This is chapter 1.It's pretty great.3"))
 		})
 	})
 })

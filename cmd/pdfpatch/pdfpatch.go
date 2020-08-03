@@ -15,7 +15,7 @@ import (
 const usage = `
 pdfpatch SUBCOMMAND ARGS
 
-  SUBCOMMAND: must be extract-text, make-patch, make-patches, apply-patch, bind-pdf, or patch-pdfs
+  SUBCOMMAND: must be extract-text, make-patch, make-patches, apply-patch, bind-pdf, patch-pdfs, or patch-bundle
 `
 
 const extractTextUsage = `
@@ -60,46 +60,43 @@ pdfpatch bind-pdf INPUT_MARKDOWNS_DIR INPUT_CSS_FILE OUTPUT_FILE_PATH
 const patchPDFsUsage = `
 pdfpatch patch-pdfs MANIFEST_PATH INPUT_PDF_DIR PATCHES_DIR CSS_PATH OUTPUT_PDF_PATH
 
-  MANIFEST_PATH:   file page to manifest file
+  MANIFEST_PATH:   path to manifest file
   INPUT_PDF_DIR:   put the directory containing PDFs to patch
   PATCHES_DIR:	   directory containing patches with filenames like "input_pdf_file.pdf.patch" for each PDF file
   CSS_PATH:        path to the CSS file used to style the output PDF
   OUTPUT_PDF_PATH: path where output PDF should be written
 `
 
+const patchBundleUsage = `
+pdfpatch patch-bundle BUNDLE_PATH INPUT_PDF_DIR STYLE_SHEET OUTPUT_PDF_PATH
+
+  BUNDLE_PATH:     path to bundle file
+  INPUT_PDF_DIR:   put the directory containing PDFs to patch
+  STYLE_SHEET:     style sheet used to render the PDF (must be one listed in the manifest)
+  OUTPUT_PDF_PATH: path where output PDF should be written
+`
+
 func main() {
 	if len(os.Args) == 1 {
-		fmt.Println(usage)
-		os.Exit(2)
+		checkArguments(0, usage)
 	}
 
 	subcommand := os.Args[1]
 
 	if subcommand == "extract-text" {
-		if len(os.Args) != 4 {
-			fmt.Println(extractTextUsage)
-			os.Exit(2)
-		}
+		checkArguments(4, extractTextUsage)
 		manifest := parseManifest(os.Args[2])
 		fileNames := manifest.SourceFileNames()
 		text, err := extractor.TextFromPDFs(os.Args[3], fileNames)
 		exitOnError(err, "Could not extract text")
 		fmt.Println(text)
-		os.Exit(0)
 	} else if subcommand == "make-patch" {
-		if len(os.Args) < 4 {
-			fmt.Println(makePatchUsage)
-			os.Exit(2)
-		}
+		checkArguments(4, makePatchUsage)
 		patch, err := pdfpatch.GeneratePatch(os.Args[2], os.Args[3:])
 		exitOnError(err, "Could not generate patch")
 		fmt.Println(patch)
-		os.Exit(0)
 	} else if subcommand == "make-patches" {
-		if len(os.Args) != 6 {
-			fmt.Println(makePatchesUsage)
-			os.Exit(2)
-		}
+		checkArguments(6, makePatchesUsage)
 		manifest := parseManifest(os.Args[2])
 		pdfMarkdowns := make([]pdfpatch.PDFMarkdowns, len(manifest.Sources))
 		for i, source := range manifest.Sources {
@@ -116,7 +113,6 @@ func main() {
 			err := ioutil.WriteFile(outputPath, []byte(patch.Patch), 0755)
 			exitOnError(err, "Could not write patch file")
 		}
-		os.Exit(0)
 	} else if subcommand == "apply-patch" {
 		var patchFileName string
 		if len(os.Args) == 3 {
@@ -124,36 +120,38 @@ func main() {
 		} else if len(os.Args) == 4 {
 			patchFileName = os.Args[3]
 		} else {
-			fmt.Println(applyPatchUsage)
-			os.Exit(2)
+			checkArguments(0, applyPatchUsage)
 		}
 		result, err := pdfpatch.ApplyPatch(os.Args[2], patchFileName)
 		exitOnError(err, "Could not apply patch")
 		fmt.Println(result)
-		os.Exit(0)
 	} else if subcommand == "bind-pdf" {
-		if len(os.Args) != 5 {
-			fmt.Println(bindPdfUsage)
-			os.Exit(2)
-		}
+		checkArguments(5, bindPdfUsage)
 		err := pdfbinder.BindPdf(os.Args[2], os.Args[3], os.Args[4])
 		exitOnError(err, "Unable to bind PDF")
-		os.Exit(0)
 	} else if subcommand == "patch-pdfs" {
-		if len(os.Args) != 7 {
-			fmt.Println(patchPDFsUsage)
-			os.Exit(2)
-		}
+		checkArguments(7, patchPDFsUsage)
 		manifest := parseManifest(os.Args[2])
 		pdfFiles := manifest.SourceFileNames()
 		err := pdfpatch.PatchPDF(pdfFiles, os.Args[3], os.Args[4], os.Args[5], os.Args[6])
-		exitOnError(err, "Unable to bind PDF")
-		os.Exit(0)
+		exitOnError(err, "Unable to patch PDF")
+	} else if subcommand == "patch-bundle" {
+		checkArguments(6, patchBundleUsage)
+		err := pdfpatch.PatchBundle(os.Args[2], os.Args[3], os.Args[4], os.Args[5])
+		exitOnError(err, "Unable to patch PDFs with bundle")
 	} else {
 		fmt.Println(usage)
 		os.Exit(2)
 	}
+}
 
+// checkArguments checks if the number of arguments is correct otherwise it prints the usage and exists
+// by convention, passing numArguments as 0 will print the usage and exist
+func checkArguments(numArguments int, usageMessage string) {
+	if len(os.Args) != numArguments {
+		fmt.Println(usageMessage)
+		os.Exit(2)
+	}
 }
 
 func parseManifest(manifestPath string) manifest.Manifest {

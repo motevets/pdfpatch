@@ -9,18 +9,18 @@ import (
 )
 
 var _ = Describe("Bundle", func() {
+	const bundlePath = "../../test/fixtures/patch_bundle.zip"
+	var (
+		bundle manifest.Bundle
+		err    error
+	)
+
+	BeforeEach(func() {
+		bundle, err = manifest.UnpackBundle(bundlePath)
+		Expect(err).NotTo(HaveOccurred())
+	})
+
 	Describe(".UnpackBundle", func() {
-		const bundlePath = "../../test/fixtures/patch_bundle.zip"
-		var (
-			bundle manifest.Bundle
-			err    error
-		)
-
-		BeforeEach(func() {
-			bundle, err = manifest.UnpackBundle(bundlePath)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
 		It("returns a struct with the manifest", func() {
 			Expect(bundle.Manifest).To(Equal(manifest.Manifest{
 				Sources: []manifest.Source{
@@ -65,6 +65,20 @@ var _ = Describe("Bundle", func() {
 
 		It("has the path to the manifest file", func() {
 			Expect(bundle.ManifestPath).To(BeARegularFile())
+		})
+	})
+
+	Describe("Bundle#StyleSheetPath", func() {
+		It("returns the path to the stylesheet by it's name", func() {
+			Expect(bundle.CSSFilePath("large_print.css")).To(BeARegularFile())
+		})
+
+		When("the stylesheet does not exist", func() {
+			It("returns and error", func() {
+				_, err := bundle.CSSFilePath("nope.css")
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("nope.css is not a style sheet in the bundle"))
+			})
 		})
 	})
 })
