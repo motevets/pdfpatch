@@ -1,5 +1,15 @@
 sources:
-- url: https://example.com/hello_from_page_1.pdf
-  md5sum: 926559bfc78182e69af2de3e9f9e8542
-- url: https://example.com/hallo_von_seite_2.pdf
-  md5sum: e3c19285b03e4aca0f671e6b17dc699d
+  - url: http://example.com/title_pages.pdf
+    patched_files:
+      - title.md
+      - dedication.md
+  - url: http://example.com/chapter_1.pdf
+    patched_files:
+      - chapter_1.md
+styles:
+  - name: Traditional
+    description: Classical rendering of this iconic text.
+    style_sheet: book.css
+  - name: Large Print
+    description: Large print format.
+    style_sheet: large_print.css

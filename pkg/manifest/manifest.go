@@ -10,12 +10,19 @@ import (
 
 type Manifest struct {
 	Sources []Source
+	Styles  []Style
 }
 
 type Source struct {
 	URL          string
 	Md5Sum       string
 	PatchedFiles []string `yaml:"patched_files"`
+}
+
+type Style struct {
+	Name        string
+	Description string
+	StyleSheet  string `yaml:"style_sheet"`
 }
 
 func ParseFile(path string) (theManifest Manifest, err error) {

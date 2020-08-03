@@ -1,0 +1,17 @@
+section {
+	font-size: xx-large;
+	page-break-after: always;
+	string-set: pageNumber attr(data-page-number);
+}
+
+@page {
+	size: 5.31in 8.13in;
+	margin-top: 0.85in;
+	margin-left: 0.65in;
+	margin-right: 0.65in;
+    margin-bottom: 0.5in;
+    
+    @top-left {
+		content: string(pageNumber);
+    }
+}
