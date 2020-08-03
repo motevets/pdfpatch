@@ -1,9 +1,11 @@
 sources:
   - url: http://example.com/title_pages.pdf
+    file_name: "title_pages.pdf"
     patched_files:
       - title.md
       - dedication.md
   - url: http://example.com/chapter_1.pdf
+    file_name: "chapter_1.pdf"
     patched_files:
       - chapter_1.md
 styles:

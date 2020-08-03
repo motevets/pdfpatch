@@ -81,8 +81,7 @@ func main() {
 			os.Exit(2)
 		}
 		manifest := parseManifest(os.Args[2])
-		fileNames, err := manifest.SourceFileNames()
-		exitOnError(err, "Could not get file names from sources")
+		fileNames := manifest.SourceFileNames()
 		text, err := extractor.TextFromPDFs(os.Args[3], fileNames)
 		exitOnError(err, "Could not extract text")
 		fmt.Println(text)
@@ -104,8 +103,7 @@ func main() {
 		manifest := parseManifest(os.Args[2])
 		pdfMarkdowns := make([]pdfpatch.PDFMarkdowns, len(manifest.Sources))
 		for i, source := range manifest.Sources {
-			pdfFilename, err := source.FileName()
-			exitOnError(err, "Could not get filename from source "+source.URL)
+			pdfFilename := source.FileName
 			pdfMarkdowns[i] = pdfpatch.PDFMarkdowns{
 				PDFFileName:       pdfFilename,
 				MarkdownFileNames: source.PatchedFiles,
@@ -147,9 +145,8 @@ func main() {
 			os.Exit(2)
 		}
 		manifest := parseManifest(os.Args[2])
-		pdfFiles, err := manifest.SourceFileNames()
-		exitOnError(err, "Unable to determine names of source PDFs")
-		err = pdfpatch.PatchPDF(pdfFiles, os.Args[3], os.Args[4], os.Args[5], os.Args[6])
+		pdfFiles := manifest.SourceFileNames()
+		err := pdfpatch.PatchPDF(pdfFiles, os.Args[3], os.Args[4], os.Args[5], os.Args[6])
 		exitOnError(err, "Unable to bind PDF")
 		os.Exit(0)
 	} else {
