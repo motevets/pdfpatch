@@ -19,6 +19,7 @@ require (
 	github.com/onsi/ginkgo v1.14.0
 	github.com/onsi/gomega v1.10.1
 	github.com/pierrec/lz4 v2.5.2+incompatible // indirect
+	github.com/pkg/errors v0.8.1
 	github.com/sergi/go-diff v1.1.0
 	github.com/their-sober-press/alcobinder v0.0.0-20200723202758-2dd9f32269e7
 	github.com/ulikunitz/xz v0.5.7 // indirect

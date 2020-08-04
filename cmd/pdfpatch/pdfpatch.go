@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/motevets/pdfpatch/pkg/api"
 	"github.com/motevets/pdfpatch/pkg/extractor"
 	"github.com/motevets/pdfpatch/pkg/manifest"
 	"github.com/motevets/pdfpatch/pkg/pdfbinder"
@@ -15,7 +16,7 @@ import (
 const usage = `
 pdfpatch SUBCOMMAND ARGS
 
-  SUBCOMMAND: must be extract-text, make-patch, make-patches, apply-patch, bind-pdf, patch-pdfs, or patch-bundle
+  SUBCOMMAND: must be extract-text, make-patch, make-patches, apply-patch, bind-pdf, patch-pdfs, patch-bundle, serve
 `
 
 const extractTextUsage = `
@@ -74,6 +75,12 @@ pdfpatch patch-bundle BUNDLE_PATH INPUT_PDF_DIR STYLE_SHEET OUTPUT_PDF_PATH
   INPUT_PDF_DIR:   put the directory containing PDFs to patch
   STYLE_SHEET:     style sheet used to render the PDF (must be one listed in the manifest)
   OUTPUT_PDF_PATH: path where output PDF should be written
+`
+
+const serveUsage = `
+pdfpatch serve PORT
+
+  PORT: port from which to serve API
 `
 
 func main() {
@@ -139,6 +146,11 @@ func main() {
 		checkArguments(6, patchBundleUsage)
 		err := pdfpatch.PatchBundle(os.Args[2], os.Args[3], os.Args[4], os.Args[5])
 		exitOnError(err, "Unable to patch PDFs with bundle")
+	} else if subcommand == "serve" {
+		checkArguments(3, serveUsage)
+		err := api.ServeApi(os.Args[2])
+		exitOnError(err, "Error running API server")
+		os.Exit(0)
 	} else {
 		fmt.Println(usage)
 		os.Exit(2)
