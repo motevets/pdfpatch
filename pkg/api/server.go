@@ -134,16 +134,27 @@ func patch(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, outputPDFFile)
 }
 
+// ServeApi starts an API server listening on PORT
+// This API serves only one endpoint
+//   POST /api/v0/patch
+//     Request Headers:
+//       Content-Type: multipart/form-data;
+//     Body Parameters (all fields required):
+//       cssName: string  | the name of the CCS file in the bundle
+//       pdfs:    []files | source PDF files enumerated in the bundle
+//       bundle:  file    | archive file (traditionally ZIP) with manifest, patch files, and CSS files
+//     Response:
+//       200 OK:
+//         Response Headers:
+//           Content-Disposition: attachment; filename=output.pdf
+//           Content-Type: multipart/form-data; ...
+//         Response Body:
+//           output.pdf:  file | the remixed file
 func ServeApi(port string) (err error) {
 	serverAddress := fmt.Sprintf(":%s", port)
 	http.HandleFunc("/api/v0/patch", patch)
 	log.Printf("pdfpatch server running and listening on %s", port)
 	return http.ListenAndServe(serverAddress, nil)
-}
-
-type Handler interface {
-	RequestParmeters() interface{}
-	Exec(interface{}) (interface{}, error)
 }
 
 func writeErr(w http.ResponseWriter, statusCode int, err error) {
