@@ -146,7 +146,7 @@ func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
 
-// ServeApi starts an API server listening on PORT
+// ServeAPI starts an API server listening on PORT
 // This API serves only one endpoint
 //   POST /api/v0/patch
 //     Request Headers:
@@ -162,7 +162,7 @@ func enableCors(w *http.ResponseWriter) {
 //           Content-Type: multipart/form-data; ...
 //         Response Body:
 //           output.pdf:  file | the remixed file
-func ServeApi(port string) (err error) {
+func ServeAPI(port string) (err error) {
 	serverAddress := fmt.Sprintf(":%s", port)
 	http.HandleFunc("/api/v0/patch", patch)
 	http.HandleFunc("/", notFound)

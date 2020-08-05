@@ -148,7 +148,7 @@ func main() {
 		exitOnError(err, "Unable to patch PDFs with bundle")
 	} else if subcommand == "serve" {
 		checkArguments(3, serveUsage)
-		err := api.ServeApi(os.Args[2])
+		err := api.ServeAPI(os.Args[2])
 		exitOnError(err, "Error running API server")
 		os.Exit(0)
 	} else {
