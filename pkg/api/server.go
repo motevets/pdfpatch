@@ -29,6 +29,8 @@ func patch(w http.ResponseWriter, r *http.Request) {
 		outputPDFFile      *os.File
 	)
 
+	enableCors(&w)
+
 	err = r.ParseMultipartForm(10 << 20) // use max 10mb of memory for upload
 	if err != nil {
 		writeErr(w, http.StatusBadRequest, err)
@@ -134,6 +136,16 @@ func patch(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, outputPDFFile)
 }
 
+func notFound(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	w.WriteHeader(http.StatusNotFound)
+	fmt.Fprintln(w, http.StatusText(http.StatusNotFound))
+}
+
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 // ServeApi starts an API server listening on PORT
 // This API serves only one endpoint
 //   POST /api/v0/patch
@@ -153,6 +165,7 @@ func patch(w http.ResponseWriter, r *http.Request) {
 func ServeApi(port string) (err error) {
 	serverAddress := fmt.Sprintf(":%s", port)
 	http.HandleFunc("/api/v0/patch", patch)
+	http.HandleFunc("/", notFound)
 	log.Printf("pdfpatch server running and listening on %s", port)
 	return http.ListenAndServe(serverAddress, nil)
 }
