@@ -29,8 +29,9 @@ type Bundle struct {
 //   │   └── ...
 //   ├── manifest.yml
 //   └── patches
-//       ├── PATCH_FILE_1.css
-//       ├── OPTIONAL_PATCH_FILE_2.css
+//       ├── PATCH_FILE_1.pdf.patch
+//       ├── OPTIONAL_PATCH_FILE_2.pdf.patch
+//       ├── OPTIONAL_PATCH_FILE_3.pdf.patch
 //       └── ...
 func UnpackBundle(bundleFilePath string) (bundle Bundle, err error) {
 	var (
