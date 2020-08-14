@@ -1,13 +1,12 @@
 import React from 'react';
-import './App.css';
-import Stepper from './components/stepper/Stepper'
+import Container from '@material-ui/core/Container';
+import Typography from '@material-ui/core/Typography';
+import Box from '@material-ui/core/Box';
+import PatchStepper from './components/stepper/PatchStepper';
 
 function App() {
   return (
-    <div className="App">
-      Welcome to PDF Patch!
-      <Stepper/>
-    </div>
+    <PatchStepper/>
   );
 }
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, RenderResult, fireEvent, act } from '@testing-library/react';
-import Stepper from './Stepper';
+import PatchStepper from './PatchStepper';
 import mockAxios from 'jest-mock-axios';
 
 describe('on initial render', () => {
@@ -20,7 +20,7 @@ describe('on initial render', () => {
       new File(['...'], '2.pdf')
     ]
     cssSelection = 'foo.css'
-    stepper = render(<Stepper />)
+    stepper = render(<PatchStepper />)
   });
 
   afterEach(() => {
@@ -63,10 +63,14 @@ describe('on initial render', () => {
             formData.append('bundle', bundleFile)
             formData.append('pdfs', pdfFiles[0])
             formData.append('pdfs', pdfFiles[1])
-            expect(mockAxios.post).toHaveBeenCalledWith('https://pdfpatch-gyeisy4svq-nn.a.run.app/api/v0/patch', formData, {
-              // data: bodyFormData,
-              headers: {'Content-Type': 'multipart/form-data' }
-            })
+            expect(mockAxios.post).toHaveBeenCalledWith(
+              'https://pdfpatch-gyeisy4svq-nn.a.run.app/api/v0/patch', 
+              formData,
+              {
+                headers: {'Content-Type': 'multipart/form-data' },
+                responseType: 'blob'
+              }
+            )
           })
         })
       })

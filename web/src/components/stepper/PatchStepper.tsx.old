@@ -1,0 +1,114 @@
+import React, { useState, ReactEventHandler, ChangeEvent, useCallback } from 'react';
+import FileDropper from './FileDropper';
+import axios from 'axios'
+import fileDownload from 'js-file-download'
+import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
+
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    root: {
+      width: '100%',
+    },
+    button: {
+      marginRight: theme.spacing(1),
+    },
+    instructions: {
+      marginTop: theme.spacing(1),
+      marginBottom: theme.spacing(1),
+    },
+  }),
+)
+
+const stepLabels = [
+  'Upload patch bundle',
+  'Upload source PDFs',
+  'Select style'
+]
+
+function PatchStepper() {
+  const classes = useStyles();
+  const [activeStep, setActiveStep] = React.useState(0);
+  const [activeStepFinished, setActiveStepFinished] = React.useState(false);
+  const [outputStyle, setOutputStyle] = useState("")
+  const [bundleFile, setBundleFile] = useState<File | undefined>()
+  const [pdfsFile, setPdfsFile] = useState<File[]>([])
+
+  const onBundleDrop = useCallback(acceptedFiles => {
+    setBundleFile(acceptedFiles[0])
+  }, [])
+
+  const onPdfsDrop = useCallback(acceptedFiles => {
+    setPdfsFile(acceptedFiles)
+  }, [])
+
+  const handleNext = () => {
+    if(!activeStepFinished) { //sanity check
+      console.warn("PatchStepper#handleNext was called when step wasn't complete.")
+      return
+    }
+    setActiveStepFinished(false)
+    setActiveStep((prevActiveStep) => prevActiveStep + 1)
+  };
+
+  const handleBack = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep - 1)
+  }
+
+  const handleReset = () => {
+    setActiveStepFinished(false)
+    setBundleFile(undefined)
+    setPdfsFile([])
+    setOutputStyle("")
+
+    setActiveStep(0);
+  };
+
+  function getStepContent(step: number) {
+    switch (step) {
+      case 0:
+        return (
+          <FileDropper label='Step 1: Upload patch-bundle (.zip file)' multiple={false} accept='application/zip' onDrop={onBundleDrop}/>
+        )
+      case 1:
+        return (
+          <FileDropper label='Step 2: Upload original PDFs (.pdf files)' multiple={true} accept='application/pdf' onDrop={onPdfsDrop}/>
+        )
+      case 2:
+        return (
+          <label>
+            Style: 
+            <input type="text" onChange={(event) => setOutputStyle(event.target.value)}/>
+          </label>
+        )
+      default:
+        return 'Unknown step';
+    }
+  }
+
+  return (
+    <div className={classes.root}>
+      <input type="submit" value="Patch" onClick={submitFn(bundleFile, pdfsFile, outputStyle)} />
+    </div>
+  );
+}
+
+function submitFn(bundleFile : File | undefined, pdfFiles : File[], cssStyle : string) {
+  return function() {
+    submitPdfPatch(bundleFile as File, pdfFiles, `${cssStyle}.css`)
+  }
+}
+
+function submitPdfPatch(bundleFile : File, pdfFiles : File[], cssFile : string) {
+  var formData = new FormData()
+  formData.set('cssName', cssFile)
+  formData.append('bundle', bundleFile)
+  pdfFiles.forEach(pdfFile => formData.append('pdfs', pdfFile))
+  return axios.post('https://pdfpatch-gyeisy4svq-nn.a.run.app/api/v0/patch', formData, {
+    headers: {'Content-Type': 'multipart/form-data' },
+    responseType: 'blob'
+  }).then(response => {
+    fileDownload(response.data, 'patched.pdf')
+  })
+}
+
+export default PatchStepper

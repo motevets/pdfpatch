@@ -1,70 +1,45 @@
 import React from 'react';
-import { useDropzone } from 'react-dropzone';
+import { DropzoneArea } from 'material-ui-dropzone';
 import styled from 'styled-components';
+import { makeStyles, createStyles } from '@material-ui/core/styles';
 
-type DropStyleProps = {
-  isDragAccept?: boolean
-  isDragReject?: boolean
-  isDragActive?: boolean
-}
-
-const getColor = (props: DropStyleProps) => {
-  if (props.isDragAccept) {
-    return '#00e676';
+const useStyles = makeStyles(theme => createStyles({
+  previewChip: {
+    minWidth: 160,
+    maxWidth: 210
+  },
+  dropzoneRoot: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center'
   }
-  if (props.isDragReject) {
-    return '#ff1744';
-  }
-  if (props.isDragActive) {
-    return '#2196f3';
-  }
-  return '#eeeeee';
-}
-
-const Container = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  border-width: 2px;
-  border-radius: 2px;
-  border-color: ${props => getColor(props as DropStyleProps)};
-  border-style: dashed;
-  background-color: #fafafa;
-  color: #bdbdbd;
-  outline: none;
-  transition: border .24s ease-in-out;
-`;
+}))
 
 type FileDropperProps = {
-  label: string
   multiple: boolean
-  accept: string[] | string
-  onDrop: (acceptedFiles: File[]) => void
+  accept: string[]
+  onChange: (acceptedFiles: File[]) => void
+  files: File[]
 }
 
 export default function FileDropper(props: FileDropperProps) {
-  const { label, multiple, accept, onDrop } = props
+  const classes = useStyles()
+  const { multiple, accept, onChange, files } = props
 
-  const {
-    getRootProps,
-    getInputProps,
-    acceptedFiles,
-    isDragActive,
-    isDragAccept,
-    isDragReject
-  } = useDropzone({ multiple, accept, onDrop });
-
-  return (
-    <div className="container">
-      <Container {...getRootProps({ isDragActive, isDragAccept, isDragReject })}>
-        <label>
-          <input {...getInputProps()} />
-          <p>{label}</p>
-        </label>
-        <p>{acceptedFiles.map(file => file.name).join(", ")}</p>
-      </Container>
-    </div>
-  );
+  return(
+    <DropzoneArea
+      initialFiles={files}
+      filesLimit={multiple ? 100 : 1}
+      acceptedFiles={accept}
+      onChange={onChange}
+      showPreviews={true}
+      showPreviewsInDropzone={false}
+      useChipsForPreview
+      dropzoneClass={classes.dropzoneRoot}
+      previewGridProps={{container: { spacing: 1, direction: 'row' }}}
+      previewChipProps={{classes: { root: classes.previewChip } }}
+      previewText="Selected files"
+      showAlerts={["error"]}
+    />
+  )
 }
