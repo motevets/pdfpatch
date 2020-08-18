@@ -1,6 +1,5 @@
 import React from 'react';
-import { DropzoneArea } from 'material-ui-dropzone';
-import styled from 'styled-components';
+import { DropzoneAreaBase } from 'material-ui-dropzone';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => createStyles({
@@ -17,28 +16,21 @@ const useStyles = makeStyles(theme => createStyles({
 
 type FileDropperProps = {
   multiple: boolean
-  accept: string[]
   onChange: (acceptedFiles: File[]) => void
-  files: File[]
 }
 
 export default function FileDropper(props: FileDropperProps) {
   const classes = useStyles()
-  const { multiple, accept, onChange, files } = props
+  const { multiple, onChange } = props
 
   return(
-    <DropzoneArea
-      initialFiles={files}
+    <DropzoneAreaBase
+      fileObjects={[]}
       filesLimit={multiple ? 100 : 1}
-      acceptedFiles={accept}
-      onChange={onChange}
-      showPreviews={true}
+      onDrop={onChange}
+      showPreviews={false}
       showPreviewsInDropzone={false}
-      useChipsForPreview
       dropzoneClass={classes.dropzoneRoot}
-      previewGridProps={{container: { spacing: 1, direction: 'row' }}}
-      previewChipProps={{classes: { root: classes.previewChip } }}
-      previewText="Selected files"
       showAlerts={["error"]}
     />
   )
