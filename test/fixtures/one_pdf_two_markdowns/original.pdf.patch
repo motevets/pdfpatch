@@ -1,14 +1,19 @@
 @@ -1,9 +1,20 @@
--H
-+%0APAGE 1%0A%0AGoodby
- e
--llo
+-Hell
++%0APAGE 1%0A%0AG
+ o
++odbye
   fro
-@@ -31,13 +31,31 @@
- 1.%0A%0A
+@@ -29,15 +29,33 @@
+ r 1.
++%0A%0APAGE
+  
++2%0A%0AAuf
+  
 -Hallo
-+PAGE 2%0A%0AAuf wiedersehen
++wiedersehen
   von
 @@ -65,8 +65,9 @@
  pitel 2.
 +%0A
+

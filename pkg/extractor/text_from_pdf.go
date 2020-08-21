@@ -2,6 +2,7 @@ package extractor
 
 import (
 	"path"
+	"strings"
 
 	"code.sajari.com/docconv"
 )
@@ -23,5 +24,6 @@ func TextFromPDF(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return res.Body, err
+	output := strings.ReplaceAll(res.Body, "\n", " ")
+	return output, err
 }

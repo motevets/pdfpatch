@@ -2,11 +2,9 @@ package pdfpatch_test
 
 import (
 	"bytes"
-	"fmt"
 	"path"
 	"time"
 
-	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/ledongthuc/pdf"
 	"github.com/motevets/pdfpatch/pkg/pdfpatch"
 	. "github.com/onsi/ginkgo"
@@ -24,15 +22,19 @@ Auf wiedersehen von Kapitel 2.
 `
 
 const computedPatch = `@@ -1,9 +1,20 @@
--H
-+%0APAGE 1%0A%0AGoodby
- e
--llo
+-Hell
++%0APAGE 1%0A%0AG
+ o
++odbye
   fro
-@@ -31,13 +31,31 @@
- 1.%0A%0A
+@@ -29,15 +29,33 @@
+ r 1.
++%0A%0APAGE
+  
++2%0A%0AAuf
+  
 -Hallo
-+PAGE 2%0A%0AAuf wiedersehen
++wiedersehen
   von
 @@ -65,8 +65,9 @@
  pitel 2.
@@ -75,32 +77,11 @@ var _ = Describe("pdfpatch", func() {
 		var pdfPatches = []pdfpatch.PDFPatch{
 			{
 				PDFFileName: "title_pages.pdf",
-				Patch: heredoc.Doc(`
-					@@ -1,8 +1,21 @@
-					+%0APAGE 1%0A%0ANEW 
-					 TITLE PA
-					@@ -18,16 +18,24 @@
-					 E PAGE%0A%0A
-					+PAGE 2%0A%0A
-					 Dedicate
-					@@ -52,9 +52,7 @@
-					 llow
-					- men
-					+s
-					 .
-					+%0A
-				`),
+				Patch:       "@@ -1,8 +1,21 @@\n+%0APAGE 1%0A%0ANEW \n TITLE PA\n@@ -20,10 +20,18 @@\n PAGE\n- \n+%0A%0APAGE\n  \n+2%0A%0A\n Dedi\n@@ -52,9 +52,7 @@\n llow\n- men\n+s\n .\n+%0A\n",
 			},
 			{
 				PDFFileName: "chapter_1.pdf",
-				Patch: heredoc.Doc(`
-					@@ -1,8 +1,17 @@
-					+%0APAGE 3%0A%0A
-					 This is 
-					@@ -20,8 +20,30 @@
-					 apter 1.
-					+%0A%0AIt's pretty great.%0A%0A
-				`),
+				Patch:       "@@ -1,8 +1,17 @@\n+%0APAGE 3%0A%0A\n This is \n@@ -20,8 +20,30 @@\n apter 1.\n+%0A%0AIt's pretty great.%0A%0A\n",
 			},
 		}
 
@@ -138,7 +119,6 @@ var _ = Describe("pdfpatch", func() {
 			numPages, text, err := statPDF(outputPDFFile)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(numPages).To(Equal(3))
-			fmt.Println(text)
 			Expect(text).To(Equal("NEW TITLE PAGE1Dedicated to my fellows.2This is chapter 1.It's pretty great.3"))
 		})
 	})
@@ -156,7 +136,6 @@ var _ = Describe("pdfpatch", func() {
 			numPages, text, err := statPDF(outputPDFFile)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(numPages).To(Equal(3))
-			fmt.Println(text)
 			Expect(text).To(Equal("NEW TITLE PAGE1Dedicated to myfellows.2This is chapter 1.It's pretty great.3"))
 		})
 	})

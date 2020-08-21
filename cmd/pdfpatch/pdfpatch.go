@@ -20,10 +20,9 @@ pdfpatch SUBCOMMAND ARGS
 `
 
 const extractTextUsage = `
-pdfpatch extract-text MANIFEST_PATH PDF_DIR
+pdfpatch extract-text PDF_FILE
 
-  MANIFEST_PATH: file page to manifest file
-  PDF_DIR:       path to director with source PDF files
+  PDF_FILE: path to PDF from which to extract text
 `
 
 const makePatchUsage = `
@@ -46,8 +45,8 @@ pdfpatch make-patches MANIFEST_PATH PDF_DIR MARKDOWN_DIR OUTPUT_DIR
 const applyPatchUsage = `
 pdfpatch apply-patch PDF_FILE [PATCH_FILE]
 
-  PDF_FILE:      path to source PDF file with which to patch
-  PATCH_FILE:    path to the patch file (optional, default: /dev/stdin)
+  PDF_FILE:   path to source PDF file with which to patch
+  PATCH_FILE: path to the patch file (optional, default: /dev/stdin)
 `
 
 const bindPdfUsage = `
@@ -91,14 +90,14 @@ func main() {
 	subcommand := os.Args[1]
 
 	if subcommand == "extract-text" {
-		checkArguments(4, extractTextUsage)
-		manifest := parseManifest(os.Args[2])
-		fileNames := manifest.SourceFileNames()
-		text, err := extractor.TextFromPDFs(os.Args[3], fileNames)
+		checkArguments(3, extractTextUsage)
+		text, err := extractor.TextFromPDF(os.Args[2])
 		exitOnError(err, "Could not extract text")
 		fmt.Println(text)
 	} else if subcommand == "make-patch" {
-		checkArguments(4, makePatchUsage)
+		if len(os.Args) < 4 {
+			checkArguments(0, makePatchUsage)
+		}
 		patch, err := pdfpatch.GeneratePatch(os.Args[2], os.Args[3:])
 		exitOnError(err, "Could not generate patch")
 		fmt.Println(patch)

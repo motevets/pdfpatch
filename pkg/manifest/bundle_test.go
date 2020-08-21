@@ -25,14 +25,16 @@ var _ = Describe("Bundle", func() {
 			Expect(bundle.Manifest).To(Equal(manifest.Manifest{
 				Sources: []manifest.Source{
 					{
-						URL: "http://example.com/title_pages.pdf",
+						URL:      "http://example.com/title_pages.pdf",
+						FileName: "title_pages.pdf",
 						PatchedFiles: []string{
 							"title.md",
 							"dedication.md",
 						},
 					},
 					{
-						URL: "http://example.com/chapter_1.pdf",
+						URL:      "http://example.com/chapter_1.pdf",
+						FileName: "chapter_1.pdf",
 						PatchedFiles: []string{
 							"chapter_1.md",
 						},
