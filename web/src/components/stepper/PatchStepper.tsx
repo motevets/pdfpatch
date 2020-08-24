@@ -190,9 +190,21 @@ function parseSource(sourceObj: RawSource): Source {
     fileName: "",
     md5sum: ""
   }
-  source.fileName = parseStringAttribute(sourceObj.file_name)
-  source.url = parseStringAttribute(sourceObj.url)
-  source.md5sum = parseStringAttribute(sourceObj.md5sum)
+  try {
+    source.fileName = parseStringAttribute(sourceObj.file_name)
+  } catch(e) {
+    throw new Error(`${JSON.stringify(source)}\n${e}`)
+  }
+  try {
+    source.url = parseStringAttribute(sourceObj.url)
+  } catch(e) {
+    throw new Error(`${source.fileName} url: ${e}`)
+  }
+  try {
+    source.md5sum = parseStringAttribute(sourceObj.md5sum)
+  } catch(e) {
+    throw new Error(`${source.fileName} md5sum: ${e}`)
+  }
   return source
 }
 
@@ -202,9 +214,21 @@ function parseStyle(styleObj: RawStyle): Style {
     description: "",
     styleSheet: ""
   }
-  style.name = parseStringAttribute(styleObj.name)
-  style.description = parseStringAttribute(styleObj.description)
-  style.styleSheet = parseStringAttribute(styleObj.style_sheet)
+  try {
+    style.name = parseStringAttribute(styleObj.name)
+  } catch(e) {
+    throw new Error(`${JSON.stringify(styleObj)}\n${e}`)
+  }
+  try {
+    style.description = parseStringAttribute(styleObj.description)
+  } catch (e) {
+    throw new Error(`${style.name} description: ${e}`)
+  }
+  try{
+    style.styleSheet = parseStringAttribute(styleObj.style_sheet)
+  } catch(e) {
+    throw new Error(`${style.name} stylesheet: ${e}`)
+  }
   return style
 }
 
@@ -212,11 +236,15 @@ function parseStringAttribute(thing: any): string {
   if (typeof (thing) === 'string') {
     return thing
   } else {
-    throw new Error(thing + 'is not a string')
+    throw new Error(thing + ' is not a string')
   }
 }
 
-function PatchStepper() {
+type PatchStepperProps = {
+  remixApiHost: string
+}
+
+function PatchStepper(props: PatchStepperProps) {
   const classes = useStyles();
   const [activeStep, setActiveStep] = React.useState(0);
   const [outputStyle, setOutputStyle] = useState("")
@@ -328,7 +356,7 @@ function PatchStepper() {
     formData.set('cssName', outputStyle)
     formData.append('bundle', bundleFile)
     sourcesFilesMap.files.forEach(pdfFile => formData.append('pdfs', pdfFile))
-    return axios.post('https://pdfpatch-gyeisy4svq-nn.a.run.app/api/v0/patch', formData, {
+    return axios.post(`${props.remixApiHost}/api/v0/patch`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       responseType: 'blob'
     }).then(response => {
@@ -339,7 +367,7 @@ function PatchStepper() {
         setPatchFailure(error)
       })
     })
-  }, [bundleFile, outputStyle, sourcesFilesMap])
+  }, [bundleFile, outputStyle, sourcesFilesMap, props.remixApiHost])
 
   useEffect(() => {
     if (activeStep === 3 && downloadProgress === 0 && !patchFailure) {

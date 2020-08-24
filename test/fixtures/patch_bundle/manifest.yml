@@ -1,11 +1,13 @@
 sources:
   - url: http://example.com/title_pages.pdf
     file_name: "title_pages.pdf"
+    md5sum: 663d57d25413c9da4808f89919436090
     patched_files:
       - title.md
       - dedication.md
   - url: http://example.com/chapter_1.pdf
     file_name: "chapter_1.pdf"
+    md5sum: a9933c03362f2b40fa4c28cb86bff14d
     patched_files:
       - chapter_1.md
 styles:
