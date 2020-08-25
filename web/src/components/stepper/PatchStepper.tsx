@@ -13,6 +13,7 @@ import JSZip from 'jszip'
 import yaml from 'js-yaml'
 import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
+import md5 from 'js-md5'
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -98,6 +99,15 @@ type Snack = {
   message: string
 }
 
+function readFileAsArrayBuffer(file : File) : Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as ArrayBuffer)
+    reader.onerror = () => reject(new Error(`filed to read file ${file.name}`))
+    reader.readAsArrayBuffer(file)
+  })
+}
+
 class UploadedFilesList {
   _sourcesFilesMap: {
     [filename: string]: {
@@ -140,12 +150,16 @@ class UploadedFilesList {
     return fileList
   }
 
-  addFile(file: File) {
-    if(this._sourcesFilesMap[file.name] === undefined) {
+  async addFile(file: File) {
+    const sourceFileTuple = this._sourcesFilesMap[file.name]
+    if(sourceFileTuple === undefined) {
       throw new Error(`${file.name} is not one of the required source PDF files`)
-    } else {
-      this._sourcesFilesMap[file.name].file = file
     }
+    const fileBytes = await readFileAsArrayBuffer(file)
+    if (md5(fileBytes) != sourceFileTuple.source.md5sum) {
+      throw new Error(`${file.name} does not have the correct contents or is corrupted`)
+    }
+    this._sourcesFilesMap[file.name].file = file
   }
 
   isFilePresent(fileName: string): boolean {
@@ -306,13 +320,13 @@ function PatchStepper(props: PatchStepperProps) {
   const onPdfsDrop = async (acceptedFiles: File[]) => {
     const nextSourcesFilesMap = sourcesFilesMap.clone()
     const errors: string[] = []
-    acceptedFiles.forEach(file => {
+    for(let i = 0; i < acceptedFiles.length; i++){
       try {
-        nextSourcesFilesMap.addFile(file)
+        await nextSourcesFilesMap.addFile(acceptedFiles[i])
       } catch(e) {
         errors.push(e.toString())
       }
-    })
+    }
     if(errors.length > 0) {
       setSnack({severity: "error", message: errors.join(", ")})
       return
@@ -363,9 +377,13 @@ function PatchStepper(props: PatchStepperProps) {
       fileDownload(response.data, 'patched.pdf')
       setDownloadProgress(100)
     }).catch(err => {
-      err.response.data.text().then((error: String) => {
-        setPatchFailure(error)
-      })
+      if(err.response && err.response.data) {
+        err.response.data.text().then((error: String) => {
+          setPatchFailure(error)
+        })
+      } else {
+        setPatchFailure(err.toString())
+      }
     })
   }, [bundleFile, outputStyle, sourcesFilesMap, props.remixApiHost])
 
